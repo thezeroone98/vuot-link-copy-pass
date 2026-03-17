@@ -191,11 +191,23 @@
             const originalBtnText = "Nhấn để copy vào clipboard";
 
             try {
+                // Copy vào clipboard
                 await navigator.clipboard.writeText(fetchedPassword);
+                
+                // === CHÚ Ý PHẦN NÀY ===
+                // Thay 'ten-file-nhac.mp3' bằng đúng tên file mp3 mà bạn đã upload lên GitHub
+                // Ví dụ nếu file của bạn tên là 'ting.mp3' thì sửa thành: new Audio('./ting.mp3')
+                const audio = new Audio('./ten-file-nhac.mp3'); 
+                
+                // Phát nhạc (thêm .catch để bỏ qua lỗi hiển thị nếu trình duyệt chặn tự động phát)
+                audio.play().catch(error => console.log("Không thể phát nhạc:", error));
+                // =======================
+
                 passText.classList.remove('blurred');
                 copyBtn.classList.add('success');
                 copyBtn.textContent = "✅ Đã copy thành công!";
 
+                // Đợi 3 giây rồi làm mờ lại
                 setTimeout(() => {
                     passText.classList.add('blurred'); 
                     copyBtn.classList.remove('success'); 
