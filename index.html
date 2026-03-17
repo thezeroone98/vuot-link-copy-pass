@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Mật Khẩu</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { text-align: center; background: white; padding: 30px 50px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+        .pass-item { margin-bottom: 15px; }
+        button { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; transition: 0.3s; }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        #message { margin-top: 15px; min-height: 20px; font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Kho Mật Khẩu Của Tôi</h2>
+        
+        <div class="pass-item">
+            <button onclick="copyPass('https://gist.githubusercontent.com/thezeroone98/8640ff5b382aa70b509a3a41f1ce2adf/raw', this)">
+                Copy Pass apk307.txt
+            </button>
+        </div>
+
+        <div class="pass-item">
+            <button onclick="copyPass('LINK_RAW_GIST_THU_2_CUA_BAN_O_DAY', this)">
+                Copy Pass File Khác
+            </button>
+        </div>
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        async function copyPass(rawUrl, btnElement) {
+            const messageEl = document.getElementById('message');
+            const originalText = btnElement.innerText;
+
+            try {
+                // Đổi nút thành trạng thái đang tải
+                btnElement.disabled = true;
+                btnElement.innerText = "Đang tải...";
+
+                // Lấy nội dung Gist
+                const response = await fetch(rawUrl);
+                if (!response.ok) throw new Error('Lỗi kết nối tới Gist');
+                const rawText = await response.text();
+                
+                // Thuật toán bóc tách chỉ lấy mật khẩu
+                const passPrefix = "pass 👉 ";
+                let cleanPassword = "";
+                
+                if (rawText.includes(passPrefix)) {
+                    // Cắt bỏ phần trước chữ "pass 👉 "
+                    cleanPassword = rawText.split(passPrefix)[1];
+                    // Đề phòng có dấu xuống dòng ở cuối pass, chỉ lấy dòng hiện tại
+                    cleanPassword = cleanPassword.split('\n')[0].trim();
+                } else {
+                    throw new Error('Không tìm thấy "pass 👉" trong Gist');
+                }
+
+                // Copy vào Clipboard
+                await navigator.clipboard.writeText(cleanPassword);
+
+                messageEl.textContent = `✅ Đã copy mật khẩu!`;
+                messageEl.style.color = '#28a745';
+                
+            } catch (error) {
+                messageEl.textContent = '❌ ' + error.message;
+                messageEl.style.color = '#dc3545';
+            } finally {
+                // Trả lại trạng thái nút ban đầu
+                btnElement.disabled = false;
+                btnElement.innerText = originalText;
+                setTimeout(() => { messageEl.textContent = ''; }, 3000);
+            }
+        }
+    </script>
+
+</body>
+</html>
