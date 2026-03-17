@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lấy Mật Khẩu</title>
     <style>
-        /* CSS Giao diện Dark Mode cực đẹp */
+        /* CSS Giao diện Dark Mode */
         body { 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             min-height: 100vh; 
-            background-color: #1e1e1e; /* Nền tối */
+            background-color: #1e1e1e; 
             margin: 0; 
             padding: 20px;
             box-sizing: border-box;
@@ -20,7 +20,7 @@
         }
         .container { 
             text-align: center; 
-            background: #2d2d30; /* Xám nhạt (trong dải màu tối) */
+            background: #2d2d30; 
             padding: 35px 40px; 
             border-radius: 12px; 
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
@@ -30,15 +30,20 @@
         }
         h2 {
             margin-top: 0;
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             color: #ffffff;
             font-weight: 600;
             margin-bottom: 20px;
+            word-break: break-word; /* Chống tràn chữ nếu tên file quá dài */
+            line-height: 1.4;
+        }
+        .highlight {
+            color: #f39c12; /* Màu vàng cam cho tên file nổi bật */
         }
         
         /* Khung hiển thị pass */
         .pass-box-container {
-            background-color: #18181a; /* Nền hộp pass tối hơn */
+            background-color: #18181a; 
             border: 1px solid #3e3e42;
             border-radius: 8px;
             padding: 16px;
@@ -54,26 +59,25 @@
             font-family: monospace;
             font-size: 1.1rem;
             letter-spacing: 1px;
-            color: #4dabf7; /* Màu chữ xanh sáng */
+            color: #4dabf7; 
             word-break: break-all;
             transition: all 0.4s ease;
         }
 
-        /* Class dùng để làm mờ 50% bằng Javascript */
         .blurred {
             filter: blur(5px);
             opacity: 0.5;
-            user-select: none; /* Không cho bôi đen khi đang mờ */
+            user-select: none; 
         }
 
-        /* Nút Copy màu xanh dương */
+        /* Nút Copy */
         button { 
             width: 100%; 
             padding: 14px; 
             font-size: 16px; 
             font-weight: bold; 
             cursor: pointer; 
-            background-color: #0d6efd; /* Xanh dương chuẩn */
+            background-color: #0d6efd; 
             color: white; 
             border: none; 
             border-radius: 8px; 
@@ -96,25 +100,23 @@
             transform: none;
         }
         
-        /* Hiệu ứng khi copy thành công */
         button.success {
-            background-color: #198754 !important; /* Đổi sang xanh lá */
+            background-color: #198754 !important; 
             box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3) !important;
         }
 
-        /* Thông báo trạng thái nhỏ ở dưới */
         #statusMsg { 
             margin-top: 15px; 
             min-height: 20px; 
             font-size: 14px; 
-            color: #ff6b6b; /* Màu đỏ nhạt cho lỗi */
+            color: #ff6b6b; 
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Pass là:</h2>
+        <h2 id="passTitle">Đang tải dữ liệu...</h2>
         
         <div class="pass-box-container">
             <span id="passText" class="blurred">Đang kết nối...</span>
@@ -125,21 +127,20 @@
     </div>
 
     <script>
-        // Biến lưu trữ mật khẩu sau khi tải về thành công
         let fetchedPassword = "";
 
-        // Chạy ngay khi mở trang web
         document.addEventListener('DOMContentLoaded', async () => {
+            const passTitle = document.getElementById('passTitle');
             const passText = document.getElementById('passText');
             const copyBtn = document.getElementById('copyBtn');
             const statusMsg = document.getElementById('statusMsg');
 
-            // Lấy ID từ link (Ví dụ: ?id=8640ff5b382aa70b509a3a41f1ce2adf)
             const urlParams = new URLSearchParams(window.location.search);
             const gistId = urlParams.get('id');
 
             if (!gistId) {
-                passText.textContent = "Lỗi: Không tìm thấy ID";
+                passTitle.textContent = "Lỗi kết nối";
+                passText.textContent = "Không tìm thấy ID";
                 passText.classList.remove('blurred');
                 statusMsg.textContent = "Vui lòng kiểm tra lại đường link của bạn!";
                 return;
@@ -148,12 +149,20 @@
             const rawUrl = `https://gist.githubusercontent.com/thezeroone98/${gistId}/raw`;
 
             try {
-                // Tải dữ liệu từ Gist
                 const response = await fetch(rawUrl);
                 if (!response.ok) throw new Error('Không thể tải dữ liệu từ Gist này!');
                 const rawText = await response.text();
                 
-                // Lọc lấy pass
+                // 1. Tách các dòng ra để xử lý
+                const lines = rawText.split('\n');
+                
+                // Lấy dòng đầu tiên (chứa tên file)
+                const fileName = lines[0].trim();
+                
+                // Cập nhật tiêu đề hiển thị tên file màu nổi bật
+                passTitle.innerHTML = `Đây là pass của <br><span class="highlight">${fileName}</span>`;
+
+                // 2. Lọc lấy pass
                 const passPrefix = "pass 👉 ";
                 if (rawText.includes(passPrefix)) {
                     fetchedPassword = rawText.split(passPrefix)[1];
@@ -162,21 +171,18 @@
                     throw new Error('Định dạng file sai (thiếu "pass 👉 ")');
                 }
 
-                // Điền pass vào khung và làm mờ nó
                 passText.textContent = fetchedPassword;
-                passText.classList.add('blurred'); // Kích hoạt CSS làm mờ 50%
-                
-                // Bật nút Copy
+                passText.classList.add('blurred'); 
                 copyBtn.disabled = false;
 
             } catch (error) {
-                passText.textContent = "Lỗi tải pass";
+                passTitle.textContent = "Lỗi tải dữ liệu";
+                passText.textContent = "Không có pass";
                 passText.classList.remove('blurred');
                 statusMsg.textContent = error.message;
             }
         });
 
-        // Xử lý khi nhấn nút Copy
         document.getElementById('copyBtn').addEventListener('click', async () => {
             if (!fetchedPassword) return;
 
@@ -185,20 +191,14 @@
             const originalBtnText = "Nhấn để copy vào clipboard";
 
             try {
-                // Thực hiện copy vào clipboard
                 await navigator.clipboard.writeText(fetchedPassword);
-
-                // Hiệu ứng 1: Bỏ làm mờ pass để người dùng nhìn thấy
                 passText.classList.remove('blurred');
-
-                // Hiệu ứng 2: Đổi màu và chữ của nút
                 copyBtn.classList.add('success');
                 copyBtn.textContent = "✅ Đã copy thành công!";
 
-                // Sau 3 giây, trả mọi thứ về trạng thái cũ
                 setTimeout(() => {
-                    passText.classList.add('blurred'); // Làm mờ lại
-                    copyBtn.classList.remove('success'); // Trả về màu xanh dương
+                    passText.classList.add('blurred'); 
+                    copyBtn.classList.remove('success'); 
                     copyBtn.textContent = originalBtnText;
                 }, 3000);
 
