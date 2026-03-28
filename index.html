@@ -140,7 +140,7 @@
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         #reactionImg {
-            max-width: 140px;
+            width: 50%; /* Chỉnh kích thước to bằng 50% container */
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -244,10 +244,20 @@
         // Xử lý sự kiện click vào ảnh alo vu
         document.getElementById('reactionImg').addEventListener('click', () => {
             const reactionImg = document.getElementById('reactionImg');
-            // Chỉ phát nhạc nếu đang là ảnh alo-vu
+            // Chỉ phát nhạc và đổi ảnh nếu đang là ảnh alo-vu
             if (reactionImg.src.includes('alo-vu.webp')) {
                 const aloVuAudio = new Audio('./alo-vu.mp3');
                 aloVuAudio.play().catch(err => console.log("Không thể phát nhạc alo-vu:", err));
+                
+                // Đổi ảnh sang hình so-qua.webp
+                reactionImg.src = './so-qua.webp';
+
+                // Tự động trả về ảnh cũ sau 2 giây để người dùng có thể bấm lại
+                setTimeout(() => {
+                    if (reactionImg.src.includes('so-qua.webp')) {
+                        reactionImg.src = './alo-vu.webp';
+                    }
+                }, 2000);
             }
         });
 
