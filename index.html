@@ -140,7 +140,7 @@
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         #reactionImg {
-            width: 50%; /* Chỉnh kích thước to bằng 50% container */
+            width: 90%; /* Đã tăng thêm 40% (từ 50% lên 90%) */
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -191,6 +191,11 @@
 
     <script>
         let fetchedPassword = "";
+
+        // Khởi tạo Audio ở ngoài để kiểm soát trạng thái, tránh spam chồng chéo
+        const aloVuAudio = new Audio('./alo-vu.mp3');
+        const camOnAudio = new Audio('./cam-on-anh-do-mixi.mp3');
+        const cheerAudio = new Audio('./Crowd-cheering-and-clapping.mp3');
 
         document.addEventListener('DOMContentLoaded', async () => {
             const passTitle = document.getElementById('passTitle');
@@ -243,21 +248,23 @@
 
         // Xử lý sự kiện click vào ảnh alo vu
         document.getElementById('reactionImg').addEventListener('click', () => {
+            // Khóa không cho tương tác tiếp nếu âm thanh đang phát
+            if (!aloVuAudio.paused) return;
+
             const reactionImg = document.getElementById('reactionImg');
-            // Chỉ phát nhạc và đổi ảnh nếu đang là ảnh alo-vu
             if (reactionImg.src.includes('alo-vu.webp')) {
-                const aloVuAudio = new Audio('./alo-vu.mp3');
-                aloVuAudio.play().catch(err => console.log("Không thể phát nhạc alo-vu:", err));
-                
                 // Đổi ảnh sang hình so-qua.webp
                 reactionImg.src = './so-qua.webp';
 
-                // Tự động trả về ảnh cũ sau 2 giây để người dùng có thể bấm lại
-                setTimeout(() => {
+                // Phát nhạc
+                aloVuAudio.play().catch(err => console.log("Không thể phát nhạc alo-vu:", err));
+
+                // Lắng nghe sự kiện chạy hết mp3 mới đổi lại ảnh về mặc định
+                aloVuAudio.onended = () => {
                     if (reactionImg.src.includes('so-qua.webp')) {
                         reactionImg.src = './alo-vu.webp';
                     }
-                }, 2000);
+                };
             }
         });
 
@@ -288,7 +295,7 @@
                 const leftRect = catLeft.getBoundingClientRect();
                 const rightRect = catRight.getBoundingClientRect();
 
-                // Bắn pháo giấy từ vị trí mèo bên trái (Góc 60 độ chéo vào trong)
+                // Bắn pháo giấy từ vị trí mèo bên trái (Được phép spam liên tục)
                 confetti({
                     particleCount: 100,
                     angle: 60,
@@ -300,7 +307,7 @@
                     zIndex: 9999
                 });
 
-                // Bắn pháo giấy từ vị trí mèo bên phải (Góc 120 độ chéo vào trong)
+                // Bắn pháo giấy từ vị trí mèo bên phải (Được phép spam liên tục)
                 confetti({
                     particleCount: 100,
                     angle: 120,
@@ -312,32 +319,36 @@
                     zIndex: 9999
                 });
 
-                // 2. Phát nhạc hiện tại
-                const audio = new Audio('./cam-on-anh-do-mixi.mp3'); 
-                audio.play().catch(error => console.log("Không thể phát nhạc:", error));
+                // 2. Phát nhạc hiện tại (Chỉ phát nếu đang dừng - chống spam âm thanh)
+                if (camOnAudio.paused) {
+                    camOnAudio.play().catch(error => console.log("Không thể phát nhạc:", error));
 
-                // 3. Phát thêm âm thanh vỗ tay
-                const cheerAudio = new Audio('./Crowd-cheering-and-clapping.mp3');
-                cheerAudio.play().catch(error => console.log("Không thể phát nhạc vỗ tay:", error));
+                    // Lắng nghe sự kiện chạy hết nhạc mới ẩn pass và đổi lại giao diện
+                    camOnAudio.onended = () => {
+                        passText.classList.add('blurred'); 
+                        copyBtn.classList.remove('success'); 
+                        copyBtn.textContent = originalBtnText;
+                        
+                        // Trả lại ảnh ban đầu và ẩn 2 mèo 2 bên
+                        if (reactionImg.src.includes('meo-kho-ga.png')) {
+                            reactionImg.src = './alo-vu.webp';
+                        }
+                        catLeft.style.display = 'none';
+                        catRight.style.display = 'none';
+                        
+                        // Hiện lại chữ gợi ý
+                        hintText.style.display = 'block';
+                    };
+                }
+
+                // 3. Phát thêm âm thanh vỗ tay (Chỉ phát nếu đang dừng - chống spam âm thanh)
+                if (cheerAudio.paused) {
+                    cheerAudio.play().catch(error => console.log("Không thể phát nhạc vỗ tay:", error));
+                }
                 
                 passText.classList.remove('blurred');
                 copyBtn.classList.add('success');
                 copyBtn.textContent = "✅ Đã copy thành công!";
-
-                // Đợi 3 giây rồi làm mờ lại và đổi lại ảnh cũ
-                setTimeout(() => {
-                    passText.classList.add('blurred'); 
-                    copyBtn.classList.remove('success'); 
-                    copyBtn.textContent = originalBtnText;
-                    
-                    // Trả lại ảnh ban đầu và ẩn 2 mèo 2 bên
-                    reactionImg.src = './alo-vu.webp';
-                    catLeft.style.display = 'none';
-                    catRight.style.display = 'none';
-                    
-                    // Hiện lại chữ gợi ý
-                    hintText.style.display = 'block';
-                }, 3000);
 
             } catch (err) {
                 alert("Lỗi trình duyệt: Không thể copy tự động.");
