@@ -113,19 +113,58 @@
         }
 
         /* CSS tùy chỉnh cho ảnh */
-        #reactionImg {
+        .cats-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
             margin-top: 20px;
-            max-width: 100%;
+            min-height: 120px;
+        }
+        .side-cat {
+            width: 80px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: none; /* Ẩn mặc định */
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        #catRight {
+            animation: popInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popInRight {
+            0% { transform: scale(0) rotate(10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        #reactionImg {
+            max-width: 140px;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            max-height: 200px; /* Giới hạn chiều cao để không chiếm quá nhiều diện tích */
+            cursor: pointer; /* Đổi con trỏ chuột thành hình bàn tay để báo hiệu có thể click */
+        }
+        #reactionImg:hover {
+            transform: scale(1.05);
+        }
+        #hintText {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #f1c40f;
+            font-style: italic;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
     </style>
+    <!-- Thêm thư viện hiệu ứng pháo giấy (confetti) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
@@ -139,8 +178,15 @@
         <button id="copyBtn" disabled>Nhấn để copy vào clipboard</button>
         <p id="statusMsg"></p>
 
-        <!-- Đã sửa tên file ở đây: alo-vu.webp -->
-        <img id="reactionImg" src="./alo-vu.webp" alt="Hình ảnh tương tác">
+        <!-- Khung chứa ảnh alo vu và meo kho ga 2 bên -->
+        <div class="cats-container">
+            <img id="catLeft" class="side-cat" src="./meo-kho-ga.png" alt="Mèo trái">
+            <img id="reactionImg" src="./alo-vu.webp" alt="Hình ảnh tương tác">
+            <img id="catRight" class="side-cat" src="./meo-kho-ga.png" alt="Mèo phải">
+        </div>
+        
+        <!-- Dòng chữ gợi ý -->
+        <p id="hintText">Ấn vào ảnh chộ đó sẽ có điều đặc biệt xảy ra 👆</p>
     </div>
 
     <script>
@@ -195,26 +241,72 @@
             }
         });
 
+        // Xử lý sự kiện click vào ảnh alo vu
+        document.getElementById('reactionImg').addEventListener('click', () => {
+            const reactionImg = document.getElementById('reactionImg');
+            // Chỉ phát nhạc nếu đang là ảnh alo-vu
+            if (reactionImg.src.includes('alo-vu.webp')) {
+                const aloVuAudio = new Audio('./alo-vu.mp3');
+                aloVuAudio.play().catch(err => console.log("Không thể phát nhạc alo-vu:", err));
+            }
+        });
+
         document.getElementById('copyBtn').addEventListener('click', async () => {
             if (!fetchedPassword) return;
 
             const copyBtn = document.getElementById('copyBtn');
             const passText = document.getElementById('passText');
             const reactionImg = document.getElementById('reactionImg');
+            const catLeft = document.getElementById('catLeft');
+            const catRight = document.getElementById('catRight');
+            const hintText = document.getElementById('hintText');
             const originalBtnText = "Nhấn để copy vào clipboard";
 
             try {
                 // Copy vào clipboard
                 await navigator.clipboard.writeText(fetchedPassword);
-                
-                // 1. Đổi ảnh sang mèo khô gà (Đã sửa đường dẫn)
+
+                // Ẩn dòng chữ gợi ý
+                hintText.style.display = 'none';
+
+                // 1. Đổi ảnh sang mèo khô gà ở giữa và hiện 2 ảnh 2 bên
                 reactionImg.src = './meo-kho-ga.png';
+                catLeft.style.display = 'block';
+                catRight.style.display = 'block';
+
+                // Lấy tọa độ của 2 con mèo 2 bên trên màn hình
+                const leftRect = catLeft.getBoundingClientRect();
+                const rightRect = catRight.getBoundingClientRect();
+
+                // Bắn pháo giấy từ vị trí mèo bên trái (Góc 60 độ chéo vào trong)
+                confetti({
+                    particleCount: 100,
+                    angle: 60,
+                    spread: 70,
+                    origin: { 
+                        x: (leftRect.left + leftRect.width / 2) / window.innerWidth, 
+                        y: (leftRect.top + leftRect.height / 2) / window.innerHeight 
+                    },
+                    zIndex: 9999
+                });
+
+                // Bắn pháo giấy từ vị trí mèo bên phải (Góc 120 độ chéo vào trong)
+                confetti({
+                    particleCount: 100,
+                    angle: 120,
+                    spread: 70,
+                    origin: { 
+                        x: (rightRect.left + rightRect.width / 2) / window.innerWidth, 
+                        y: (rightRect.top + rightRect.height / 2) / window.innerHeight 
+                    },
+                    zIndex: 9999
+                });
 
                 // 2. Phát nhạc hiện tại
                 const audio = new Audio('./cam-on-anh-do-mixi.mp3'); 
                 audio.play().catch(error => console.log("Không thể phát nhạc:", error));
 
-                // 3. Phát thêm âm thanh vỗ tay (Đã sửa đường dẫn)
+                // 3. Phát thêm âm thanh vỗ tay
                 const cheerAudio = new Audio('./Crowd-cheering-and-clapping.mp3');
                 cheerAudio.play().catch(error => console.log("Không thể phát nhạc vỗ tay:", error));
                 
@@ -228,8 +320,13 @@
                     copyBtn.classList.remove('success'); 
                     copyBtn.textContent = originalBtnText;
                     
-                    // Trả lại ảnh ban đầu (Đã sửa đường dẫn)
+                    // Trả lại ảnh ban đầu và ẩn 2 mèo 2 bên
                     reactionImg.src = './alo-vu.webp';
+                    catLeft.style.display = 'none';
+                    catRight.style.display = 'none';
+                    
+                    // Hiện lại chữ gợi ý
+                    hintText.style.display = 'block';
                 }, 3000);
 
             } catch (err) {
