@@ -111,6 +111,15 @@
             font-size: 14px; 
             color: #ff6b6b; 
         }
+
+        /* CSS tùy chỉnh cho ảnh */
+        #reactionImg {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease; /* Hiệu ứng chuyển đổi ảnh cho mượt */
+        }
     </style>
 </head>
 <body>
@@ -124,6 +133,8 @@
 
         <button id="copyBtn" disabled>Nhấn để copy vào clipboard</button>
         <p id="statusMsg"></p>
+
+        <img id="reactionImg" src="./alo vu.webp" alt="Hình ảnh tương tác">
     </div>
 
     <script>
@@ -188,6 +199,7 @@
 
             const copyBtn = document.getElementById('copyBtn');
             const passText = document.getElementById('passText');
+            const reactionImg = document.getElementById('reactionImg');
             const originalBtnText = "Nhấn để copy vào clipboard";
 
             try {
@@ -195,23 +207,32 @@
                 await navigator.clipboard.writeText(fetchedPassword);
                 
                 // === CHÚ Ý PHẦN NÀY ===
-                // Thay 'ten-file-nhac.mp3' bằng đúng tên file mp3 mà bạn đã upload lên GitHub
-                // Ví dụ nếu file của bạn tên là 'ting.mp3' thì sửa thành: new Audio('./ting.mp3')
-                const audio = new Audio('./cam-on-anh-do-mixi.mp3'); 
                 
-                // Phát nhạc (thêm .catch để bỏ qua lỗi hiển thị nếu trình duyệt chặn tự động phát)
+                // 1. Đổi ảnh sang mèo khô gà
+                reactionImg.src = './meo kho ga.png';
+
+                // 2. Phát nhạc hiện tại
+                const audio = new Audio('./cam-on-anh-do-mixi.mp3'); 
                 audio.play().catch(error => console.log("Không thể phát nhạc:", error));
+
+                // 3. Phát thêm âm thanh vỗ tay
+                const cheerAudio = new Audio('./Crowd cheering and clapping.mp3');
+                cheerAudio.play().catch(error => console.log("Không thể phát nhạc vỗ tay:", error));
+                
                 // =======================
 
                 passText.classList.remove('blurred');
                 copyBtn.classList.add('success');
                 copyBtn.textContent = "✅ Đã copy thành công!";
 
-                // Đợi 3 giây rồi làm mờ lại
+                // Đợi 3 giây rồi làm mờ lại và đổi lại ảnh cũ
                 setTimeout(() => {
                     passText.classList.add('blurred'); 
                     copyBtn.classList.remove('success'); 
                     copyBtn.textContent = originalBtnText;
+                    
+                    // Trả lại ảnh ban đầu
+                    reactionImg.src = './alo vu.webp';
                 }, 3000);
 
             } catch (err) {
