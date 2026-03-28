@@ -34,11 +34,11 @@
             color: #ffffff;
             font-weight: 600;
             margin-bottom: 20px;
-            word-break: break-word; /* Chống tràn chữ nếu tên file quá dài */
+            word-break: break-word;
             line-height: 1.4;
         }
         .highlight {
-            color: #f39c12; /* Màu vàng cam cho tên file nổi bật */
+            color: #f39c12; 
         }
         
         /* Khung hiển thị pass */
@@ -116,9 +116,14 @@
         #reactionImg {
             margin-top: 20px;
             max-width: 100%;
+            height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease; /* Hiệu ứng chuyển đổi ảnh cho mượt */
+            transition: all 0.3s ease;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-height: 200px; /* Giới hạn chiều cao để không chiếm quá nhiều diện tích */
         }
     </style>
 </head>
@@ -134,7 +139,8 @@
         <button id="copyBtn" disabled>Nhấn để copy vào clipboard</button>
         <p id="statusMsg"></p>
 
-        <img id="reactionImg" src="./alo vu.webp" alt="Hình ảnh tương tác">
+        <!-- Đã sửa tên file ở đây: alo-vu.webp -->
+        <img id="reactionImg" src="./alo-vu.webp" alt="Hình ảnh tương tác">
     </div>
 
     <script>
@@ -164,16 +170,11 @@
                 if (!response.ok) throw new Error('Không thể tải dữ liệu từ Gist này!');
                 const rawText = await response.text();
                 
-                // 1. Tách các dòng ra để xử lý
                 const lines = rawText.split('\n');
-                
-                // Lấy dòng đầu tiên (chứa tên file)
                 const fileName = lines[0].trim();
                 
-                // Cập nhật tiêu đề hiển thị tên file màu nổi bật
                 passTitle.innerHTML = `Đây là pass của <br><span class="highlight">${fileName}</span>`;
 
-                // 2. Lọc lấy pass
                 const passPrefix = "pass 👉 ";
                 if (rawText.includes(passPrefix)) {
                     fetchedPassword = rawText.split(passPrefix)[1];
@@ -206,21 +207,17 @@
                 // Copy vào clipboard
                 await navigator.clipboard.writeText(fetchedPassword);
                 
-                // === CHÚ Ý PHẦN NÀY ===
-                
-                // 1. Đổi ảnh sang mèo khô gà
-                reactionImg.src = './meo kho ga.png';
+                // 1. Đổi ảnh sang mèo khô gà (Đã sửa đường dẫn)
+                reactionImg.src = './meo-kho-ga.png';
 
                 // 2. Phát nhạc hiện tại
                 const audio = new Audio('./cam-on-anh-do-mixi.mp3'); 
                 audio.play().catch(error => console.log("Không thể phát nhạc:", error));
 
-                // 3. Phát thêm âm thanh vỗ tay
-                const cheerAudio = new Audio('./Crowd cheering and clapping.mp3');
+                // 3. Phát thêm âm thanh vỗ tay (Đã sửa đường dẫn)
+                const cheerAudio = new Audio('./Crowd-cheering-and-clapping.mp3');
                 cheerAudio.play().catch(error => console.log("Không thể phát nhạc vỗ tay:", error));
                 
-                // =======================
-
                 passText.classList.remove('blurred');
                 copyBtn.classList.add('success');
                 copyBtn.textContent = "✅ Đã copy thành công!";
@@ -231,8 +228,8 @@
                     copyBtn.classList.remove('success'); 
                     copyBtn.textContent = originalBtnText;
                     
-                    // Trả lại ảnh ban đầu
-                    reactionImg.src = './alo vu.webp';
+                    // Trả lại ảnh ban đầu (Đã sửa đường dẫn)
+                    reactionImg.src = './alo-vu.webp';
                 }, 3000);
 
             } catch (err) {
@@ -240,6 +237,5 @@
             }
         });
     </script>
-
 </body>
 </html>
